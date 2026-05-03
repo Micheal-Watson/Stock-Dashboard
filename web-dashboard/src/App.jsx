@@ -1,0 +1,593 @@
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer,
+} from 'recharts'
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmt(val, decimals = 2) {
+  if (val == null || val === '' || isNaN(Number(val))) return '—'
+  return Number(val).toFixed(decimals)
+}
+
+function fmtPrice(val, currency = 'USD') {
+  if (val == null || isNaN(Number(val)) || Number(val) === 0) return '—'
+  return `${currency === 'CAD' ? 'CA$' : '$'}${Number(val).toFixed(2)}`
+}
+
+function formatConsensus(c) {
+  if (!c) return '—'
+  return c.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+}
+
+function signalStyle(signal) {
+  if (!signal) return { text: 'text-gray-400', bg: 'bg-gray-800/50', border: 'border-gray-700' }
+  const s = signal.toLowerCase().replace(/_/g, ' ')
+  if (s === 'strong buy') return { text: 'text-emerald-300', bg: 'bg-emerald-900/40', border: 'border-emerald-600' }
+  if (s === 'buy')         return { text: 'text-green-400',   bg: 'bg-green-900/30',   border: 'border-green-700' }
+  if (s === 'strong sell') return { text: 'text-red-300',     bg: 'bg-red-900/40',     border: 'border-red-600' }
+  if (s === 'sell')        return { text: 'text-red-400',     bg: 'bg-red-900/30',     border: 'border-red-700' }
+  return { text: 'text-yellow-400', bg: 'bg-yellow-900/30', border: 'border-yellow-700' }
+}
+
+function parseQuarterly(str) {
+  try {
+    const qd = JSON.parse(str)
+    return qd.quarters
+      .map((q, i) => ({
+        quarter:  q,
+        Revenue:  +(qd.revenue[i]  ?? 0).toFixed(2),
+        Earnings: +(qd.earnings[i] ?? 0).toFixed(2),
+      }))
+      .filter(d => d.Revenue > 0 || d.Earnings > 0)
+  } catch { return [] }
+}
+
+// Returns YoY comparisons for same-numbered quarters across years
+function computeYoY(chartData) {
+  const byQ = {}
+  for (const d of chartData) {
+    const m = d.quarter.match(/(\d{4})-(Q\d)/)
+    if (!m) continue
+    const [, year, q] = m
+    if (!byQ[q]) byQ[q] = []
+    byQ[q].push({ year: +year, Revenue: d.Revenue, Earnings: d.Earnings })
+  }
+  const results = []
+  for (const q of ['Q1', 'Q2', 'Q3', 'Q4']) {
+    const entries = byQ[q]?.sort((a, b) => a.year - b.year)
+    if (!entries || entries.length < 2) continue
+    const cur  = entries[entries.length - 1]
+    const prev = entries[entries.length - 2]
+    results.push({
+      label:   `${cur.year} ${q}`,
+      revYoY:  prev.Revenue  > 0 ? ((cur.Revenue  - prev.Revenue)  / prev.Revenue  * 100) : null,
+      earnYoY: prev.Earnings > 0 ? ((cur.Earnings - prev.Earnings) / prev.Earnings * 100) : null,
+    })
+  }
+  return results
+}
+
+function pctChange(cur, prev) {
+  if (prev == null || prev === 0 || prev < 0) return null
+  return (cur - prev) / prev * 100
+}
+
+function formatDate(iso) {
+  if (!iso) return ''
+  try {
+    return new Date(iso).toLocaleString('en-CA', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    })
+  } catch { return iso }
+}
+
+// ── Small components ──────────────────────────────────────────────────────────
+
+function MetricCard({ label, value, valueClass = 'text-[#e6edf3]', sub, hint }) {
+  return (
+    <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-4 flex flex-col gap-1 min-w-0">
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] truncate">{label}</span>
+      <span className={`text-lg font-bold leading-snug truncate ${valueClass}`}>{value ?? '—'}</span>
+      {sub  && <span className="text-xs text-[#8b949e] leading-tight">{sub}</span>}
+      {hint && <span className="text-[10px] text-[#8b949e]/50 italic leading-tight">{hint}</span>}
+    </div>
+  )
+}
+
+function SignalBadge({ signal, large }) {
+  const s = signalStyle(signal)
+  return (
+    <span className={`inline-block rounded-full border font-semibold ${s.bg} ${s.text} ${s.border} ${large ? 'text-sm px-5 py-2' : 'text-xs px-3 py-1'}`}>
+      {formatConsensus(signal) || '—'}
+    </span>
+  )
+}
+
+function PctLabel({ val }) {
+  if (val == null) return <span className="text-[#8b949e]">N/M</span>
+  const up = val >= 0
+  return (
+    <span className={up ? 'text-[#3fb950]' : 'text-[#f85149]'}>
+      {up ? '▲' : '▼'} {Math.abs(val).toFixed(1)}%
+    </span>
+  )
+}
+
+// ── Main App ──────────────────────────────────────────────────────────────────
+
+export default function App() {
+  const [data,      setData]      = useState(null)
+  const [selected,  setSelected]  = useState(null)
+  const [loading,   setLoading]   = useState(true)
+  const [error,     setError]     = useState(null)
+  const [apiOk,     setApiOk]     = useState(false)
+  const [addInput,  setAddInput]  = useState('')
+  const [adding,    setAdding]    = useState(false)
+  const [removing,  setRemoving]  = useState(null)
+  const [addError,  setAddError]  = useState('')
+
+  // ── Data loading ───────────────────────────────────────────────────────────
+
+  const fetchData = useCallback(async () => {
+    // Try live API (only works when server.py is running locally)
+    try {
+      const r = await fetch('/api/data')
+      if (r.ok) {
+        setApiOk(true)
+        return await r.json()
+      }
+    } catch { /* not available in production */ }
+    // Fall back to static file (production / Vercel)
+    const r = await fetch('/stock_data.json')
+    if (!r.ok) throw new Error(`HTTP ${r.status}`)
+    return r.json()
+  }, [])
+
+  const applyData = useCallback((json, keepSelected = false) => {
+    const tickers = Object.keys(json).filter(k => k !== '_meta')
+    setData(json)
+    setSelected(prev => {
+      if (keepSelected && prev && tickers.includes(prev)) return prev
+      return tickers[0] ?? null
+    })
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+      .then(json => { applyData(json); setLoading(false) })
+      .catch(e  => { setError(e.message); setLoading(false) })
+
+    // Auto-refresh every 30 s (only meaningful when API server is running)
+    const id = setInterval(() => {
+      fetchData().then(json => applyData(json, true)).catch(() => {})
+    }, 30_000)
+    return () => clearInterval(id)
+  }, [fetchData, applyData])
+
+  // ── Watchlist management ────────────────────────────────────────────────────
+
+  async function addTicker() {
+    const ticker = addInput.trim().toUpperCase()
+    if (!ticker) return
+    setAdding(true)
+    setAddError('')
+    try {
+      const r = await fetch('/api/watchlist', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ ticker }),
+      })
+      if (!r.ok) { setAddError('Failed'); return }
+      setAddInput('')
+      // Wait a moment then refresh — the Python script might not have data yet
+      setTimeout(async () => {
+        const json = await fetchData()
+        applyData(json, true)
+      }, 500)
+    } catch { setAddError('API unavailable') }
+    finally  { setAdding(false) }
+  }
+
+  async function removeTicker(ticker) {
+    setRemoving(ticker)
+    try {
+      await fetch(`/api/watchlist/${ticker}`, { method: 'DELETE' })
+      const json = await fetchData()
+      const tickers = Object.keys(json).filter(k => k !== '_meta')
+      setData(json)
+      setSelected(prev => prev === ticker ? (tickers[0] ?? null) : prev)
+    } finally { setRemoving(null) }
+  }
+
+  // ── Computed values ─────────────────────────────────────────────────────────
+
+  const tickers   = useMemo(() => data ? Object.keys(data).filter(k => k !== '_meta') : [], [data])
+  const stock     = data && selected ? data[selected] : null
+  const chartData = useMemo(() => stock?.quarterly_data ? parseQuarterly(stock.quarterly_data) : [], [stock])
+  const yoyData   = useMemo(() => computeYoY(chartData), [chartData])
+
+  // ── Loading / error states ──────────────────────────────────────────────────
+
+  if (loading) return (
+    <div className="min-h-screen bg-[#0d1117] flex items-center justify-center">
+      <div className="text-[#8b949e] text-sm animate-pulse">Loading market data…</div>
+    </div>
+  )
+  if (error) return (
+    <div className="min-h-screen bg-[#0d1117] flex items-center justify-center flex-col gap-2">
+      <div className="text-[#f85149] font-semibold">Failed to load data</div>
+      <div className="text-[#8b949e] text-sm">{error}</div>
+    </div>
+  )
+
+  const chg      = stock?.change_pct ?? 0
+  const chgColor = chg > 0 ? 'text-[#3fb950]' : chg < 0 ? 'text-[#f85149]' : 'text-[#8b949e]'
+  const chgSign  = chg > 0 ? '+' : ''
+  const reasonPills = stock?.reason?.split('|').map(r => r.trim()).filter(Boolean) ?? []
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="h-screen bg-[#0d1117] text-[#e6edf3] flex flex-col overflow-hidden">
+
+      {/* Navbar */}
+      <nav className="bg-[#161b22] border-b border-[#21262d] px-4 md:px-6 py-3 flex items-center justify-between flex-shrink-0 gap-4">
+        <span className="text-[#58a6ff] font-bold text-base md:text-lg tracking-tight whitespace-nowrap">
+          📈 Stock Dashboard
+        </span>
+        {/* Mobile picker */}
+        <select
+          value={selected ?? ''}
+          onChange={e => setSelected(e.target.value)}
+          className="md:hidden bg-[#21262d] text-[#e6edf3] rounded-lg px-3 py-1.5 text-sm border border-[#30363d] flex-1 max-w-xs"
+        >
+          {tickers.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <div className="hidden md:flex items-center gap-3">
+          {apiOk && (
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#3fb950] bg-green-900/20 border border-green-900/50 px-2 py-1 rounded-full">
+              ● Live
+            </span>
+          )}
+          {stock?.last_updated && (
+            <span className="text-[#8b949e] text-xs">Updated {formatDate(stock.last_updated)}</span>
+          )}
+        </div>
+      </nav>
+
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* Sidebar */}
+        <aside className="hidden md:flex w-52 bg-[#161b22] border-r border-[#21262d] flex-col flex-shrink-0 overflow-y-auto">
+
+          {/* Search / add */}
+          {apiOk && (
+            <div className="px-3 pt-4 pb-3 border-b border-[#21262d]">
+              <p className="text-[10px] text-[#8b949e] uppercase tracking-widest font-semibold mb-2 px-1">
+                Add Ticker
+              </p>
+              <div className="flex gap-1.5">
+                <input
+                  value={addInput}
+                  onChange={e => { setAddInput(e.target.value.toUpperCase()); setAddError('') }}
+                  onKeyDown={e => e.key === 'Enter' && addTicker()}
+                  placeholder="e.g. TSLA"
+                  maxLength={10}
+                  className="flex-1 min-w-0 bg-[#21262d] text-[#e6edf3] rounded-lg px-2.5 py-1.5 text-xs border border-[#30363d] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58] transition-colors"
+                />
+                <button
+                  onClick={addTicker}
+                  disabled={adding || !addInput.trim()}
+                  className="bg-[#21262d] hover:bg-[#30363d] text-[#58a6ff] rounded-lg px-2.5 py-1.5 text-sm font-bold border border-[#30363d] disabled:opacity-40 transition-colors"
+                >
+                  {adding ? '…' : '+'}
+                </button>
+              </div>
+              {addError && <p className="text-[#f85149] text-[10px] mt-1 px-1">{addError}</p>}
+              <p className="text-[10px] text-[#484f58] mt-1.5 px-1">
+                Python fetches new tickers on next cycle (~60s)
+              </p>
+            </div>
+          )}
+
+          {/* Ticker list */}
+          <div className="px-2 py-3 space-y-0.5">
+            <p className="text-[10px] text-[#8b949e] uppercase tracking-widest font-semibold px-2 mb-2">
+              Watchlist
+            </p>
+            {tickers.map(ticker => {
+              const s   = data[ticker]
+              const c   = s?.change_pct ?? 0
+              const active = ticker === selected
+              return (
+                <div
+                  key={ticker}
+                  className={`group flex items-center rounded-lg transition-colors cursor-pointer ${
+                    active ? 'bg-[#21262d]' : 'hover:bg-[#1c2128]'
+                  }`}
+                >
+                  <button
+                    onClick={() => setSelected(ticker)}
+                    className="flex-1 text-left px-3 py-2.5 min-w-0"
+                  >
+                    <div className={`font-semibold text-sm ${active ? 'text-[#e6edf3]' : 'text-[#8b949e] group-hover:text-[#e6edf3]'}`}>
+                      {ticker}
+                    </div>
+                    <div className={`text-xs font-medium ${c > 0 ? 'text-[#3fb950]' : c < 0 ? 'text-[#f85149]' : 'text-[#8b949e]'}`}>
+                      {c > 0 ? '+' : ''}{fmt(c)}%
+                    </div>
+                  </button>
+                  {apiOk && (
+                    <button
+                      onClick={() => removeTicker(ticker)}
+                      disabled={removing === ticker}
+                      title="Remove from watchlist"
+                      className="opacity-0 group-hover:opacity-100 mr-2 w-5 h-5 flex items-center justify-center text-[#8b949e] hover:text-[#f85149] rounded transition-all text-base leading-none disabled:opacity-30"
+                    >
+                      {removing === ticker ? '…' : '×'}
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </aside>
+
+        {/* Main */}
+        <main className="flex-1 overflow-y-auto">
+          {stock && (
+            <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-6">
+
+              {/* Header */}
+              <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-5 md:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="text-3xl md:text-4xl font-bold">{selected}</h1>
+                      {stock.currency && stock.currency !== 'USD' && (
+                        <span className="text-xs font-semibold bg-[#21262d] text-[#8b949e] border border-[#30363d] px-2 py-0.5 rounded">
+                          {stock.currency}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-baseline gap-3 mt-2 flex-wrap">
+                      <span className="text-2xl md:text-3xl font-bold">
+                        {fmtPrice(stock.price, stock.currency)}
+                      </span>
+                      <span className={`text-lg font-semibold ${chgColor}`}>
+                        {chgSign}{fmt(chg)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <SignalBadge signal={stock.our_rating} large />
+                    {stock.signal_text && stock.signal_text !== stock.our_rating && (
+                      <span className="text-xs text-[#8b949e]">Signal: {stock.signal_text}</span>
+                    )}
+                  </div>
+                </div>
+                {reasonPills.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {reasonPills.map((r, i) => (
+                      <span key={i} className="text-xs bg-[#21262d] text-[#8b949e] border border-[#30363d] rounded-full px-3 py-1">
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {stock.error && (
+                  <div className="mt-3 text-xs text-[#f85149] bg-red-900/20 border border-red-900/50 rounded-lg px-3 py-2">
+                    ⚠ {stock.error}
+                  </div>
+                )}
+              </div>
+
+              {/* Technical */}
+              <section>
+                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-3">Technical Analysis</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <MetricCard
+                    label="RSI (14)" value={fmt(stock.rsi)}
+                    valueClass={stock.rsi > 70 ? 'text-[#f85149]' : stock.rsi < 30 ? 'text-[#3fb950]' : 'text-[#e6edf3]'}
+                    sub={stock.rsi > 70 ? 'Overbought' : stock.rsi < 30 ? 'Oversold' : 'Neutral'}
+                  />
+                  <MetricCard
+                    label="SMA 20" value={fmtPrice(stock.sma_short, stock.currency)}
+                    valueClass={stock.price > stock.sma_short ? 'text-[#3fb950]' : 'text-[#f85149]'}
+                    sub={stock.price > stock.sma_short ? 'Price above ▲' : 'Price below ▼'}
+                  />
+                  <MetricCard
+                    label="SMA 50" value={fmtPrice(stock.sma_long, stock.currency)}
+                    valueClass={stock.price > stock.sma_long ? 'text-[#3fb950]' : 'text-[#f85149]'}
+                    sub={stock.price > stock.sma_long ? 'Price above ▲' : 'Price below ▼'}
+                  />
+                  <MetricCard
+                    label="Volume Ratio" value={`${fmt(stock.vol_ratio)}x`}
+                    valueClass={stock.vol_ratio > 1.5 ? 'text-[#58a6ff]' : 'text-[#e6edf3]'}
+                    sub={stock.vol_ratio > 1.5 ? 'High volume' : stock.vol_ratio < 0.7 ? 'Low volume' : 'Normal'}
+                  />
+                  <MetricCard label="52W High" value={fmtPrice(stock.high_52w, stock.currency)} />
+                  <MetricCard label="52W Low"  value={fmtPrice(stock.low_52w,  stock.currency)} />
+                  <MetricCard
+                    label="From 52W High" value={`${fmt(stock.pct_from_52w_high)}%`}
+                    valueClass={stock.pct_from_52w_high > -5 ? 'text-[#3fb950]' : stock.pct_from_52w_high > -20 ? 'text-[#e3b341]' : 'text-[#f85149]'}
+                  />
+                </div>
+              </section>
+
+              {/* Fundamentals */}
+              <section>
+                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-3">Fundamentals</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                  <MetricCard label="P/E Ratio" value={stock.pe_ratio ? `${fmt(stock.pe_ratio)}x` : '—'} />
+                  <MetricCard
+                    label="Profit Margin" value={`${fmt(stock.profit_margin)}%`}
+                    valueClass={stock.profit_margin >= 20 ? 'text-[#3fb950]' : stock.profit_margin >= 10 ? 'text-[#e3b341]' : 'text-[#f85149]'}
+                  />
+                  <MetricCard label="Cash Reserves" value={`$${fmt(stock.cash_reserves)}B`} valueClass="text-[#3fb950]" />
+                  <MetricCard label="Total Debt"     value={`$${fmt(stock.total_debt)}B`}     valueClass="text-[#f85149]" />
+                  <MetricCard
+                    label="Rule of 40" value={fmt(stock.rule_of_40)}
+                    valueClass={stock.rule_of_40 >= 40 ? 'text-[#3fb950]' : stock.rule_of_40 >= 20 ? 'text-[#e3b341]' : 'text-[#f85149]'}
+                    hint="Rev Growth% + Profit Margin%"
+                  />
+                </div>
+              </section>
+
+              {/* Valuation & Analyst */}
+              <section>
+                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-3">Valuation & Analyst</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <MetricCard label="Intrinsic Value" value={fmtPrice(stock.intrinsic_value, stock.currency)} />
+                  <MetricCard
+                    label="DCF Margin" value={`${fmt(stock.dcf_margin)}%`}
+                    valueClass={stock.dcf_margin > 0 ? 'text-[#3fb950]' : 'text-[#f85149]'}
+                    sub={stock.dcf_note}
+                  />
+                  <MetricCard label="Analyst Target" value={fmtPrice(stock.analyst_target, stock.currency)} />
+                  <MetricCard
+                    label="Analyst Rating" value={formatConsensus(stock.analyst_consensus)}
+                    valueClass={signalStyle(stock.analyst_consensus).text}
+                  />
+                  <MetricCard label="# Analysts" value={stock.analyst_count} />
+                  <MetricCard
+                    label="Our Rating" value={formatConsensus(stock.our_rating)}
+                    valueClass={signalStyle(stock.our_rating).text}
+                  />
+                </div>
+              </section>
+
+              {/* Quarterly chart */}
+              {chartData.length > 0 && (
+                <section>
+                  <h2 className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-3">
+                    Quarterly Revenue vs Earnings (Billions)
+                  </h2>
+                  <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-4 md:p-6">
+                    <div className="flex gap-4 items-stretch">
+
+                      {/* Chart */}
+                      <div className="flex-1 min-w-0">
+                        <ResponsiveContainer width="100%" height={260}>
+                          <BarChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#21262d" vertical={false} />
+                            <XAxis
+                              dataKey="quarter"
+                              tick={{ fill: '#8b949e', fontSize: 11 }}
+                              axisLine={{ stroke: '#30363d' }}
+                              tickLine={false}
+                            />
+                            <YAxis
+                              tick={{ fill: '#8b949e', fontSize: 11 }}
+                              axisLine={false}
+                              tickLine={false}
+                              tickFormatter={v => `$${v}B`}
+                              width={48}
+                            />
+                            <Tooltip
+                              cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                              content={({ active, payload, label }) => {
+                                if (!active || !payload?.length) return null
+                                const idx  = chartData.findIndex(d => d.quarter === label)
+                                const prev = idx > 0 ? chartData[idx - 1] : null
+                                return (
+                                  <div className="bg-[#1c2128] border border-[#30363d] rounded-lg p-3 text-sm shadow-xl min-w-[160px]">
+                                    <p className="text-[#8b949e] font-semibold mb-2">{label}</p>
+                                    {payload.map(p => {
+                                      const qoq = prev ? pctChange(p.value, prev[p.dataKey]) : null
+                                      return (
+                                        <div key={p.dataKey} className="mb-1.5">
+                                          <span style={{ color: p.fill }} className="font-bold">
+                                            {p.dataKey}: ${p.value.toFixed(2)}B
+                                          </span>
+                                          {qoq !== null && (
+                                            <span className={`ml-2 text-xs font-semibold ${qoq >= 0 ? 'text-[#3fb950]' : 'text-[#f85149]'}`}>
+                                              {qoq >= 0 ? '▲' : '▼'} {Math.abs(qoq).toFixed(1)}% QoQ
+                                            </span>
+                                          )}
+                                          {idx === 0 && (
+                                            <span className="ml-2 text-xs text-[#484f58]">first quarter</span>
+                                          )}
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                )
+                              }}
+                            />
+                            <Bar dataKey="Revenue"  fill="#58a6ff" radius={[4, 4, 0, 0]} maxBarSize={36} />
+                            <Bar dataKey="Earnings" fill="#3fb950" radius={[4, 4, 0, 0]} maxBarSize={36} />
+                          </BarChart>
+                        </ResponsiveContainer>
+
+                        {/* Legend row */}
+                        <div className="flex gap-4 justify-center mt-2">
+                          <span className="flex items-center gap-1.5 text-xs text-[#8b949e]">
+                            <span className="w-3 h-3 rounded-sm bg-[#58a6ff] inline-block" /> Revenue
+                          </span>
+                          <span className="flex items-center gap-1.5 text-xs text-[#8b949e]">
+                            <span className="w-3 h-3 rounded-sm bg-[#3fb950] inline-block" /> Earnings
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* YoY panel */}
+                      {yoyData.length > 0 && (
+                        <div className="hidden sm:flex w-36 flex-shrink-0 flex-col justify-center gap-3 border-l border-[#21262d] pl-4">
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e]">
+                            Year over Year
+                          </p>
+                          {yoyData.map(item => (
+                            <div key={item.label} className="bg-[#21262d] rounded-lg p-2.5 space-y-1">
+                              <p className="text-[10px] text-[#8b949e] font-medium">{item.label}</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-[#8b949e]">Rev</span>
+                                <span className="text-xs font-bold"><PctLabel val={item.revYoY} /></span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-[#8b949e]">Earn</span>
+                                <span className="text-xs font-bold"><PctLabel val={item.earnYoY} /></span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mobile YoY (below chart on small screens) */}
+                    {yoyData.length > 0 && (
+                      <div className="sm:hidden mt-4 pt-4 border-t border-[#21262d]">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-2">Year over Year</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {yoyData.map(item => (
+                            <div key={item.label} className="bg-[#21262d] rounded-lg p-2.5 space-y-1">
+                              <p className="text-[10px] text-[#8b949e] font-medium">{item.label}</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-[#8b949e]">Rev</span>
+                                <span className="text-xs font-bold"><PctLabel val={item.revYoY} /></span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-[#8b949e]">Earn</span>
+                                <span className="text-xs font-bold"><PctLabel val={item.earnYoY} /></span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              <p className="text-center text-[#484f58] text-xs pb-4">
+                Data via Python + yfinance · Built with React & Recharts
+              </p>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  )
+}

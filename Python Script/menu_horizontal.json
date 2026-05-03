@@ -1,0 +1,152 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "height": 48,
+      "width": 420
+    }
+  },
+  "root": {
+    "children": [
+      {
+        "meta": {
+          "name": "HorizontalMenu"
+        },
+        "position": {
+          "grow": 1
+        },
+        "propConfig": {
+          "props.items[0].style.fontWeight": {
+            "binding": {
+              "config": {
+                "path": "page.props.path"
+              },
+              "transforms": [
+                {
+                  "expression": "if ({value} = {this.props.items[0].target}, \"bold\", \"normal\")",
+                  "type": "expression"
+                }
+              ],
+              "type": "property"
+            }
+          },
+          "props.items[1].style.fontWeight": {
+            "binding": {
+              "config": {
+                "path": "page.props.path"
+              },
+              "transforms": [
+                {
+                  "expression": "if ({value} = {this.props.items[1].target}, \"bold\", \"normal\")",
+                  "type": "expression"
+                }
+              ],
+              "type": "property"
+            }
+          },
+          "props.items[2].style.fontWeight": {
+            "binding": {
+              "config": {
+                "path": "page.props.path"
+              },
+              "transforms": [
+                {
+                  "expression": "if ({value} = {this.props.items[2].target}, \"bold\", \"normal\")",
+                  "type": "expression"
+                }
+              ],
+              "type": "property"
+            }
+          },
+          "props.items[3].style.fontWeight": {
+            "binding": {
+              "config": {
+                "path": "page.props.path"
+              },
+              "transforms": [
+                {
+                  "expression": "if ({value} = {this.props.items[3].target}, \"bold\", \"normal\")",
+                  "type": "expression"
+                }
+              ],
+              "type": "property"
+            }
+          }
+        },
+        "props": {
+          "itemStyle": {
+            "classes": "Menu/Item_Horizontal"
+          },
+          "items": [
+            {
+              "enabled": true,
+              "icon": {
+                "path": "material/home"
+              },
+              "items": [],
+              "label": "Home",
+              "style": {
+                "borderRightColor": "#FFFFFF",
+                "borderRightStyle": "solid",
+                "borderRightWidth": "1px",
+                "classes": ""
+              },
+              "target": "/"
+            },
+            {
+              "enabled": true,
+              "icon": {
+                "path": "material/trending_up"
+              },
+              "items": [],
+              "label": "Stocks",
+              "style": {
+                "borderRightColor": "#FFFFFF",
+                "borderRightStyle": "solid",
+                "borderRightWidth": "1px",
+                "classes": ""
+              },
+              "target": "/stocks"
+            },
+            {
+              "enabled": true,
+              "icon": {
+                "path": "material/show_chart"
+              },
+              "items": [],
+              "label": "Charts",
+              "style": {
+                "borderRightColor": "#FFFFFF",
+                "borderRightStyle": "solid",
+                "borderRightWidth": "1px",
+                "classes": ""
+              },
+              "target": "/charts"
+            },
+            {
+              "enabled": true,
+              "icon": {
+                "path": "material/alarm"
+              },
+              "items": [],
+              "label": "Alarms",
+              "style": {
+                "classes": ""
+              },
+              "target": "/alarms"
+            }
+          ],
+          "style": {
+            "classes": "Menu/Menu_Horizontal"
+          }
+        },
+        "type": "ia.navigation.horizontalmenu"
+      }
+    ],
+    "meta": {
+      "name": "root"
+    },
+    "type": "ia.container.flex"
+  }
+}

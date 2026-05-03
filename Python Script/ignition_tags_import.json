@@ -1,0 +1,1805 @@
+{
+  "version": "2",
+  "tags": [
+    {
+      "name": "Stocks",
+      "tagType": "Folder",
+      "tags": [
+        {
+          "name": "AAPL",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "NVDA",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "TSLA",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "MSFT",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "AMZN",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "META",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "PLTR",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "SOFI",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "AMD",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "MA",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "MCD",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "TD_TO",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "ENB_TO",
+          "tagType": "Folder",
+          "tags": [
+            {
+              "name": "price",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "change_pct",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "rsi",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_short",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "sma_long",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "vol_ratio",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "high_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "low_52w",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "pct_from_52w_high",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "intrinsic_value",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "dcf_margin",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "analyst_target",
+              "tagType": "AtomicTag",
+              "dataType": "Float8",
+              "value": 0
+            },
+            {
+              "name": "signal_int",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "analyst_count",
+              "tagType": "AtomicTag",
+              "dataType": "Int4",
+              "value": 0
+            },
+            {
+              "name": "signal_text",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "reason",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "last_updated",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "error",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "dcf_note",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "analyst_consensus",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "currency",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            },
+            {
+              "name": "ai_overview",
+              "tagType": "AtomicTag",
+              "dataType": "String",
+              "value": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1080 @@
+{
+  "custom": {
+    "selectedTickerSafe": "AAPL"
+  },
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "height": 1500,
+      "width": 1600
+    }
+  },
+  "root": {
+    "children": [
+      {
+        "children": [
+          {
+            "meta": {
+              "name": "Title"
+            },
+            "position": {
+              "shrink": 0
+            },
+            "props": {
+              "text": "STOCK DASHBOARD",
+              "style": {
+                "color": "#f0f6fc",
+                "fontSize": "18px",
+                "fontWeight": "bold",
+                "letterSpacing": "3px",
+                "fontFamily": "Consolas, monospace"
+              }
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "children": [
+              {
+                "meta": {
+                  "name": "SelectLabel"
+                },
+                "position": {
+                  "shrink": 0
+                },
+                "props": {
+                  "text": "SELECT STOCK:",
+                  "style": {
+                    "color": "#8b949e",
+                    "fontSize": "11px",
+                    "marginRight": "10px",
+                    "fontFamily": "Consolas, monospace"
+                  }
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "StockDropdown"
+                },
+                "position": {
+                  "basis": "200px",
+                  "shrink": 0
+                },
+                "propConfig": {
+                  "props.value": {
+                    "binding": {
+                      "config": {
+                        "bidirectional": true,
+                        "path": "view.custom.selectedTickerSafe"
+                      },
+                      "type": "property"
+                    }
+                  }
+                },
+                "props": {
+                  "options": [
+                    {"label": "AAPL — Apple", "value": "AAPL"},
+                    {"label": "NVDA — Nvidia", "value": "NVDA"},
+                    {"label": "TSLA — Tesla", "value": "TSLA"},
+                    {"label": "MSFT — Microsoft", "value": "MSFT"},
+                    {"label": "AMZN — Amazon", "value": "AMZN"},
+                    {"label": "META — Meta", "value": "META"},
+                    {"label": "PLTR — Palantir", "value": "PLTR"},
+                    {"label": "SOFI — SoFi Tech", "value": "SOFI"},
+                    {"label": "AMD — AMD", "value": "AMD"},
+                    {"label": "MA — Mastercard", "value": "MA"},
+                    {"label": "MCD — McDonald's", "value": "MCD"},
+                    {"label": "TD.TO — TD Bank", "value": "TD_TO"},
+                    {"label": "ENB.TO — Enbridge", "value": "ENB_TO"},
+                    {"label": "GOOGL — Alphabet", "value": "GOOGL"}
+                  ],
+                  "search": {"enabled": false}
+                },
+                "type": "ia.input.dropdown"
+              }
+            ],
+            "meta": {
+              "name": "SelectorGroup"
+            },
+            "position": {
+              "grow": 1
+            },
+            "props": {
+              "align": "center",
+              "justify": "center",
+              "style": {}
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "meta": {
+              "name": "LastUpdated"
+            },
+            "position": {
+              "shrink": 0
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "\"UPDATED: \" + tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/last_updated\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "text": "UPDATED: --",
+              "style": {
+                "color": "#8b949e",
+                "fontSize": "11px",
+                "fontFamily": "Consolas, monospace"
+              }
+            },
+            "type": "ia.display.label"
+          }
+        ],
+        "meta": {
+          "name": "Header"
+        },
+        "position": {
+          "basis": "58px",
+          "shrink": 0
+        },
+        "props": {
+          "align": "center",
+          "justify": "space-between",
+          "style": {
+            "backgroundColor": "#161b22",
+            "borderBottom": "1px solid #30363d",
+            "paddingLeft": "24px",
+            "paddingRight": "24px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "TickerName"
+                    },
+                    "position": {
+                      "shrink": 0
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "replace({view.custom.selectedTickerSafe}, \"_TO\", \".TO\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "text": "AAPL",
+                      "style": {
+                        "color": "#f0f6fc",
+                        "fontSize": "20px",
+                        "fontWeight": "bold",
+                        "marginRight": "20px",
+                        "fontFamily": "Consolas, monospace"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "Price"
+                    },
+                    "position": {
+                      "shrink": 0
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/price\"), 2))"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "text": "---",
+                      "style": {
+                        "color": "#f0f6fc",
+                        "fontSize": "30px",
+                        "fontWeight": "bold",
+                        "marginRight": "10px",
+                        "fontFamily": "Consolas, monospace"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "Currency"
+                    },
+                    "position": {
+                      "shrink": 0
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/currency\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "text": "USD",
+                      "style": {
+                        "color": "#8b949e",
+                        "fontSize": "13px",
+                        "marginRight": "20px",
+                        "fontFamily": "Consolas, monospace",
+                        "alignSelf": "flex-end",
+                        "paddingBottom": "4px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "Change"
+                    },
+                    "position": {
+                      "shrink": 0
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/change_pct\"), 2)) + \"%\""
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/change_pct\")"
+                          },
+                          "transforms": [
+                            {
+                              "expression": "if({value} >= 0, '#3fb950', '#f85149')",
+                              "type": "expression"
+                            }
+                          ],
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "text": "0.00%",
+                      "style": {
+                        "fontSize": "20px",
+                        "fontWeight": "bold",
+                        "fontFamily": "Consolas, monospace",
+                        "alignSelf": "flex-end",
+                        "paddingBottom": "2px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "TickerPriceGroup"
+                },
+                "position": {
+                  "shrink": 0
+                },
+                "props": {
+                  "align": "baseline",
+                  "style": {}
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "SignalText"
+                },
+                "position": {
+                  "shrink": 0
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "config": {
+                        "expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/signal_text\")"
+                      },
+                      "type": "expr"
+                    }
+                  },
+                  "props.style.color": {
+                    "binding": {
+                      "config": {
+                        "expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/signal_int\")"
+                      },
+                      "transforms": [
+                        {
+                          "expression": "if({value} = 2, '#3fb950', if({value} = 1, '#7cb342', if({value} = 0, '#ffd600', if({value} = -1, '#ff8c00', '#f85149'))))",
+                          "type": "expression"
+                        }
+                      ],
+                      "type": "expr"
+                    }
+                  }
+                },
+                "props": {
+                  "text": "HOLD",
+                  "style": {
+                    "fontSize": "22px",
+                    "fontWeight": "bold",
+                    "letterSpacing": "2px",
+                    "fontFamily": "Consolas, monospace"
+                  }
+                },
+                "type": "ia.display.label"
+              }
+            ],
+            "meta": {
+              "name": "SignalBanner"
+            },
+            "position": {
+              "basis": "64px",
+              "shrink": 0
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/signal_int\")"
+                  },
+                  "transforms": [
+                    {
+                      "expression": "if({value} = 2, '#0d2818', if({value} = 1, '#1c3a10', if({value} = 0, '#2d2200', if({value} = -1, '#3a1800', '#2d0d0d'))))",
+                      "type": "expression"
+                    }
+                  ],
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "align": "center",
+              "justify": "space-between",
+              "style": {
+                "borderBottom": "1px solid #30363d",
+                "paddingLeft": "24px",
+                "paddingRight": "24px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {"name": "RSILabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "RSI (14)", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "RSIValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/rsi\"), 1))"},
+                          "type": "expr"
+                        }
+                      },
+                      "props.style.color": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/rsi\")"},
+                          "transforms": [{"expression": "if({value} < 30, '#3fb950', if({value} > 70, '#f85149', '#f0f6fc'))", "type": "expression"}],
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"fontSize": "26px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "RSICard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "SMA20Label"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "SMA 20", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "SMA20Value"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/sma_short\"), 2))"},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#f0f6fc", "fontSize": "26px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "SMA20Card"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "SMA50Label"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "SMA 50", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "SMA50Value"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/sma_long\"), 2))"},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#f0f6fc", "fontSize": "26px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "SMA50Card"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "VolLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "VOL RATIO", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "VolValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/vol_ratio\"), 2))"},
+                          "type": "expr"
+                        }
+                      },
+                      "props.style.color": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/vol_ratio\")"},
+                          "transforms": [{"expression": "if({value} > 1.5, '#3fb950', if({value} < 0.5, '#8b949e', '#f0f6fc'))", "type": "expression"}],
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"fontSize": "26px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "VolCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              }
+            ],
+            "meta": {"name": "MetricsRow1"},
+            "position": {"basis": "110px", "shrink": 0},
+            "props": {"style": {"paddingLeft": "18px", "paddingRight": "18px"}},
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {"name": "HighLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "52W HIGH", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "HighValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/high_52w\"), 2))"},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#3fb950", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "HighCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "LowLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "52W LOW", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "LowValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/low_52w\"), 2))"},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#f85149", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "LowCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "PctHighLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "% FROM HIGH", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "PctHighValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/pct_from_52w_high\"), 1)) + \"%\""},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#f85149", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "PctHighCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "IntrinsicLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "INTRINSIC VALUE (DCF)", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "IntrinsicValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/intrinsic_value\"), 2))"},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#58a6ff", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "IntrinsicCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              }
+            ],
+            "meta": {"name": "MetricsRow2"},
+            "position": {"basis": "110px", "shrink": 0},
+            "props": {"style": {"paddingLeft": "18px", "paddingRight": "18px"}},
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {"name": "DCFMarginLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "DCF MARGIN", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "DCFMarginValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/dcf_margin\"), 1)) + \"%\""},
+                          "type": "expr"
+                        }
+                      },
+                      "props.style.color": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/dcf_margin\")"},
+                          "transforms": [{"expression": "if({value} >= 20, '#3fb950', if({value} >= 0, '#7cb342', if({value} >= -20, '#ff8c00', '#f85149')))", "type": "expression"}],
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "DCFNoteValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/dcf_note\")"},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginTop": "4px"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "DCFMarginCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "AnalystTargetLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "ANALYST TARGET", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "AnalystTargetValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/analyst_target\"), 2))"},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#58a6ff", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "AnalystTargetCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "AnalystViewLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "ANALYST CONSENSUS", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "AnalystConsensusValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/analyst_consensus\")"},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#3fb950", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "AnalystCountValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/analyst_count\")) + \" analysts\""},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginTop": "4px"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "AnalystConsensusCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "OurRatingLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "OUR RATING", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "OurRatingValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/our_rating\")"},
+                          "type": "expr"
+                        }
+                      },
+                      "props.style.color": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/signal_int\")"},
+                          "transforms": [{"expression": "if({value} = 2, '#3fb950', if({value} = 1, '#7cb342', if({value} = 0, '#ffd600', if({value} = -1, '#ff8c00', '#f85149'))))", "type": "expression"}],
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"fontSize": "22px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "OurRatingCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              }
+            ],
+            "meta": {"name": "MetricsRow3"},
+            "position": {"basis": "110px", "shrink": 0},
+            "props": {"style": {"paddingLeft": "18px", "paddingRight": "18px"}},
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {"name": "PELabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "P/E RATIO", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "PEValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/pe_ratio\"), 1)) + \"x\""},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#f0f6fc", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "PECard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "ProfitMarginLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "PROFIT MARGIN", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "ProfitMarginValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/profit_margin\"), 1)) + \"%\""},
+                          "type": "expr"
+                        }
+                      },
+                      "props.style.color": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/profit_margin\")"},
+                          "transforms": [{"expression": "if({value} >= 20, '#3fb950', if({value} >= 0, '#7cb342', '#f85149'))", "type": "expression"}],
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "ProfitMarginCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "Rule40Label"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "RULE OF 40", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "Rule40Value"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/rule_of_40\"), 1))"},
+                          "type": "expr"
+                        }
+                      },
+                      "props.style.color": {
+                        "binding": {
+                          "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/rule_of_40\")"},
+                          "transforms": [{"expression": "if({value} >= 40, '#3fb950', if({value} >= 20, '#ffd600', '#f85149'))", "type": "expression"}],
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "Rule40Hint"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "Rev Growth% + Margin%", "style": {"color": "#8b949e", "fontSize": "10px", "fontFamily": "Consolas, monospace", "marginTop": "4px"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "Rule40Card"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "CashLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "CASH RESERVES", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "CashValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "\"$\" + toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/cash_reserves\"), 2)) + \"B\""},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#3fb950", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "CashCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {"name": "DebtLabel"},
+                    "position": {"shrink": 0},
+                    "props": {"text": "TOTAL DEBT", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "6px"}},
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {"name": "DebtValue"},
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {"expression": "\"$\" + toStr(round(tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/total_debt\"), 2)) + \"B\""},
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {"text": "...", "style": {"color": "#f85149", "fontSize": "24px", "fontWeight": "bold", "fontFamily": "Consolas, monospace"}},
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {"name": "DebtCard"},
+                "position": {"grow": 1, "basis": "0px"},
+                "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "margin": "6px"}},
+                "type": "ia.container.flex"
+              }
+            ],
+            "meta": {"name": "MetricsRow4"},
+            "position": {"basis": "110px", "shrink": 0},
+            "props": {"style": {"paddingLeft": "18px", "paddingRight": "18px"}},
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "meta": {"name": "ReasonLabel"},
+                "position": {"shrink": 0},
+                "props": {"text": "SIGNAL REASON", "style": {"color": "#8b949e", "fontSize": "11px", "fontFamily": "Consolas, monospace", "marginBottom": "8px"}},
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {"name": "ReasonValue"},
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "config": {"expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/reason\")"},
+                      "type": "expr"
+                    }
+                  }
+                },
+                "props": {"text": "...", "style": {"color": "#c9d1d9", "fontSize": "13px", "fontFamily": "Consolas, monospace", "whiteSpace": "pre-wrap"}},
+                "type": "ia.display.label"
+              }
+            ],
+            "meta": {"name": "ReasonBox"},
+            "position": {"basis": "70px", "shrink": 0},
+            "props": {"direction": "column", "style": {"backgroundColor": "#161b22", "border": "1px solid #30363d", "borderRadius": "8px", "padding": "14px 18px", "marginLeft": "24px", "marginRight": "24px", "marginBottom": "12px"}},
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "meta": {"name": "ChartTitle"},
+                "position": {"shrink": 0},
+                "props": {
+                  "text": "QUARTERLY REVENUE vs EARNINGS (Billions $)",
+                  "style": {
+                    "color": "#8b949e",
+                    "fontSize": "11px",
+                    "fontFamily": "Consolas, monospace",
+                    "letterSpacing": "2px",
+                    "marginBottom": "8px"
+                  }
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {"name": "RevenueEarningsChart"},
+                "position": {"grow": 1},
+                "propConfig": {
+                  "props.dataSources[0].data": {
+                    "binding": {
+                      "config": {
+                        "expression": "tag(\"[StockData]Stocks/\" + {view.custom.selectedTickerSafe} + \"/quarterly_dataset\")"
+                      },
+                      "type": "expr"
+                    }
+                  }
+                },
+                "props": {
+                  "dataSources": [
+                    {
+                      "id": "qdata",
+                      "data": null
+                    }
+                  ],
+                  "series": [
+                    {
+                      "name": "Revenue",
+                      "type": "BAR",
+                      "dataSource": "qdata",
+                      "xColumnName": "Quarter",
+                      "yColumnName": "Revenue",
+                      "visible": true
+                    },
+                    {
+                      "name": "Earnings",
+                      "type": "BAR",
+                      "dataSource": "qdata",
+                      "xColumnName": "Quarter",
+                      "yColumnName": "Earnings",
+                      "visible": true
+                    }
+                  ],
+                  "xAxes": [
+                    {
+                      "type": "CATEGORY",
+                      "position": "BOTTOM"
+                    }
+                  ],
+                  "yAxes": [
+                    {
+                      "position": "LEFT",
+                      "label": {"text": "Billions ($)", "visible": true}
+                    }
+                  ]
+                },
+                "type": "ia.chart.xy"
+              }
+            ],
+            "meta": {"name": "QuarterlySection"},
+            "position": {"basis": "380px", "shrink": 0},
+            "props": {
+              "direction": "column",
+              "style": {
+                "backgroundColor": "#161b22",
+                "border": "1px solid #30363d",
+                "borderRadius": "8px",
+                "padding": "14px 18px",
+                "marginLeft": "24px",
+                "marginRight": "24px",
+                "marginBottom": "24px"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {"name": "MainContent"},
+        "position": {"grow": 1},
+        "props": {"direction": "column", "style": {"backgroundColor": "#0d1117"}},
+        "type": "ia.container.flex"
+      }
+    ],
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "backgroundColor": "#0d1117"
+      }
+    },
+    "type": "ia.container.flex"
+  }
+}
