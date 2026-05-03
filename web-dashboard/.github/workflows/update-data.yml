@@ -2,8 +2,8 @@ name: Update Stock Data
 
 on:
   schedule:
-    - cron: '0 21 * * 1-5'  # 4pm ET (9pm UTC), weekdays only
-  workflow_dispatch:          # allow manual trigger from GitHub UI
+    - cron: '0 21 * * 1-5'   # 4 pm ET (9 pm UTC), weekdays
+  workflow_dispatch:           # also triggered by the watchlist API when you add/remove a ticker
 
 jobs:
   update:
@@ -20,7 +20,6 @@ jobs:
 
       - name: Run stock script
         run: python "Python Script/Stock Script.py"
-        working-directory: ${{ github.workspace }}
 
       - name: Copy data to web dashboard
         run: cp "Python Script/stock_data.json" "web-dashboard/public/stock_data.json"
@@ -29,6 +28,6 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add web-dashboard/public/stock_data.json
+          git add "Python Script/config.json" "web-dashboard/public/stock_data.json"
           git diff --cached --quiet || git commit -m "chore: update stock data $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push

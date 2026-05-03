@@ -4,7 +4,7 @@ import {
   Tooltip, ResponsiveContainer,
 } from 'recharts'
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function fmt(val, decimals = 2) {
   if (val == null || val === '' || isNaN(Number(val))) return '—'
@@ -44,7 +44,6 @@ function parseQuarterly(str) {
   } catch { return [] }
 }
 
-// Returns YoY comparisons for same-numbered quarters across years
 function computeYoY(chartData) {
   const byQ = {}
   for (const d of chartData) {
@@ -83,7 +82,7 @@ function formatDate(iso) {
   } catch { return iso }
 }
 
-// ── Small components ──────────────────────────────────────────────────────────
+// ── Components ────────────────────────────────────────────────────────────────
 
 function MetricCard({ label, value, valueClass = 'text-[#e6edf3]', sub, hint }) {
   return (
@@ -118,28 +117,33 @@ function PctLabel({ val }) {
 // ── Main App ──────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [data,      setData]      = useState(null)
-  const [selected,  setSelected]  = useState(null)
-  const [loading,   setLoading]   = useState(true)
-  const [error,     setError]     = useState(null)
-  const [apiOk,     setApiOk]     = useState(false)
-  const [addInput,  setAddInput]  = useState('')
-  const [adding,    setAdding]    = useState(false)
-  const [removing,  setRemoving]  = useState(null)
-  const [addError,  setAddError]  = useState('')
+  const [data,         setData]        = useState(null)
+  const [selected,     setSelected]    = useState(null)
+  const [loading,      setLoading]     = useState(true)
+  const [error,        setError]       = useState(null)
 
-  // ── Data loading ───────────────────────────────────────────────────────────
+  // local API state (server.py running)
+  const [localApiOk,   setLocalApiOk]  = useState(false)
+
+  // admin / watchlist state
+  const [adminToken,   setAdminToken]  = useState(() => sessionStorage.getItem('adminToken') || '')
+  const [adminUnlocked,setAdminUnlocked] = useState(false)
+  const [showLock,     setShowLock]    = useState(false)
+  const [tokenInput,   setTokenInput]  = useState('')
+  const [tokenError,   setTokenError]  = useState('')
+  const [addInput,     setAddInput]    = useState('')
+  const [adding,       setAdding]      = useState(false)
+  const [removing,     setRemoving]    = useState(null)
+  const [addError,     setAddError]    = useState('')
+  const [pendingMsg,   setPendingMsg]  = useState('')
+
+  // ── Data loading ──────────────────────────────────────────────────────────
 
   const fetchData = useCallback(async () => {
-    // Try live API (only works when server.py is running locally)
     try {
       const r = await fetch('/api/data')
-      if (r.ok) {
-        setApiOk(true)
-        return await r.json()
-      }
-    } catch { /* not available in production */ }
-    // Fall back to static file (production / Vercel)
+      if (r.ok) { setLocalApiOk(true); return await r.json() }
+    } catch { /* not running locally */ }
     const r = await fetch('/stock_data.json')
     if (!r.ok) throw new Error(`HTTP ${r.status}`)
     return r.json()
@@ -158,15 +162,50 @@ export default function App() {
     fetchData()
       .then(json => { applyData(json); setLoading(false) })
       .catch(e  => { setError(e.message); setLoading(false) })
-
-    // Auto-refresh every 30 s (only meaningful when API server is running)
     const id = setInterval(() => {
       fetchData().then(json => applyData(json, true)).catch(() => {})
     }, 30_000)
     return () => clearInterval(id)
   }, [fetchData, applyData])
 
-  // ── Watchlist management ────────────────────────────────────────────────────
+  // ── Watchlist API calls ───────────────────────────────────────────────────
+
+  // Shared headers — token only needed for Vercel serverless path
+  function authHeaders() {
+    const h = { 'Content-Type': 'application/json' }
+    if (adminToken) h['X-Admin-Token'] = adminToken
+    return h
+  }
+
+  async function verifyToken(t) {
+    // Try a real request; 401 = wrong, anything else = accepted
+    const r = await fetch('/api/watchlist', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Token': t },
+      body:    JSON.stringify({ ticker: '__verify__' }),  // harmless dummy (server ignores bad symbols)
+    })
+    return r.status !== 401
+  }
+
+  async function unlockAdmin() {
+    setTokenError('')
+    const t = tokenInput.trim()
+    if (!t) return
+    try {
+      const ok = await verifyToken(t)
+      if (ok) {
+        setAdminToken(t)
+        sessionStorage.setItem('adminToken', t)
+        setAdminUnlocked(true)
+        setShowLock(false)
+        setTokenInput('')
+      } else {
+        setTokenError('Wrong password')
+      }
+    } catch {
+      setTokenError('Could not reach server')
+    }
+  }
 
   async function addTicker() {
     const ticker = addInput.trim().toUpperCase()
@@ -174,41 +213,66 @@ export default function App() {
     setAdding(true)
     setAddError('')
     try {
-      const r = await fetch('/api/watchlist', {
+      const endpoint = localApiOk ? '/api/data' : '/api/watchlist'
+      const r = await fetch(localApiOk ? '/api/watchlist' : '/api/watchlist', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body:    JSON.stringify({ ticker }),
       })
-      if (!r.ok) { setAddError('Failed'); return }
+      if (r.status === 401) { setAddError('Wrong password'); return }
+      if (!r.ok) { setAddError('Failed — try again'); return }
+      const result = await r.json()
       setAddInput('')
-      // Wait a moment then refresh — the Python script might not have data yet
-      setTimeout(async () => {
-        const json = await fetchData()
-        applyData(json, true)
-      }, 500)
-    } catch { setAddError('API unavailable') }
+      if (result.message) setPendingMsg(result.message)
+      if (localApiOk) {
+        // Local: data updates within seconds
+        setTimeout(async () => {
+          const json = await fetchData(); applyData(json, true)
+          setPendingMsg('')
+        }, 1000)
+      } else {
+        // Vercel: GitHub Actions takes ~2 min, auto-clear message after 3 min
+        setTimeout(() => setPendingMsg(''), 180_000)
+      }
+    } catch { setAddError('Network error') }
     finally  { setAdding(false) }
   }
 
   async function removeTicker(ticker) {
     setRemoving(ticker)
+    setAddError('')
     try {
-      await fetch(`/api/watchlist/${ticker}`, { method: 'DELETE' })
-      const json = await fetchData()
-      const tickers = Object.keys(json).filter(k => k !== '_meta')
-      setData(json)
-      setSelected(prev => prev === ticker ? (tickers[0] ?? null) : prev)
-    } finally { setRemoving(null) }
+      const r = await fetch(`/api/watchlist/${ticker}`, {
+        method:  'DELETE',
+        headers: authHeaders(),
+      })
+      if (r.status === 401) { setAddError('Wrong password'); return }
+      const result = await r.json()
+      if (result.message) setPendingMsg(result.message)
+      if (localApiOk) {
+        const json = await fetchData()
+        const tickers = Object.keys(json).filter(k => k !== '_meta')
+        setData(json)
+        setSelected(prev => prev === ticker ? (tickers[0] ?? null) : prev)
+        setPendingMsg('')
+      } else {
+        setSelected(prev => prev === ticker ? (tickers[0] ?? null) : prev)
+        setTimeout(() => setPendingMsg(''), 180_000)
+      }
+    } catch { setAddError('Network error') }
+    finally  { setRemoving(null) }
   }
 
-  // ── Computed values ─────────────────────────────────────────────────────────
+  // ── Computed ──────────────────────────────────────────────────────────────
 
   const tickers   = useMemo(() => data ? Object.keys(data).filter(k => k !== '_meta') : [], [data])
   const stock     = data && selected ? data[selected] : null
   const chartData = useMemo(() => stock?.quarterly_data ? parseQuarterly(stock.quarterly_data) : [], [stock])
   const yoyData   = useMemo(() => computeYoY(chartData), [chartData])
 
-  // ── Loading / error states ──────────────────────────────────────────────────
+  const canManage = localApiOk || adminUnlocked
+
+  // ── States ────────────────────────────────────────────────────────────────
 
   if (loading) return (
     <div className="min-h-screen bg-[#0d1117] flex items-center justify-center">
@@ -227,7 +291,7 @@ export default function App() {
   const chgSign  = chg > 0 ? '+' : ''
   const reasonPills = stock?.reason?.split('|').map(r => r.trim()).filter(Boolean) ?? []
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="h-screen bg-[#0d1117] text-[#e6edf3] flex flex-col overflow-hidden">
@@ -237,7 +301,6 @@ export default function App() {
         <span className="text-[#58a6ff] font-bold text-base md:text-lg tracking-tight whitespace-nowrap">
           📈 Stock Dashboard
         </span>
-        {/* Mobile picker */}
         <select
           value={selected ?? ''}
           onChange={e => setSelected(e.target.value)}
@@ -246,9 +309,14 @@ export default function App() {
           {tickers.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         <div className="hidden md:flex items-center gap-3">
-          {apiOk && (
+          {localApiOk && (
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[#3fb950] bg-green-900/20 border border-green-900/50 px-2 py-1 rounded-full">
               ● Live
+            </span>
+          )}
+          {adminUnlocked && !localApiOk && (
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#58a6ff] bg-blue-900/20 border border-blue-900/50 px-2 py-1 rounded-full">
+              🔓 Admin
             </span>
           )}
           {stock?.last_updated && (
@@ -262,12 +330,10 @@ export default function App() {
         {/* Sidebar */}
         <aside className="hidden md:flex w-52 bg-[#161b22] border-r border-[#21262d] flex-col flex-shrink-0 overflow-y-auto">
 
-          {/* Search / add */}
-          {apiOk && (
+          {/* Add ticker panel */}
+          {canManage && (
             <div className="px-3 pt-4 pb-3 border-b border-[#21262d]">
-              <p className="text-[10px] text-[#8b949e] uppercase tracking-widest font-semibold mb-2 px-1">
-                Add Ticker
-              </p>
+              <p className="text-[10px] text-[#8b949e] uppercase tracking-widest font-semibold mb-2 px-1">Add Ticker</p>
               <div className="flex gap-1.5">
                 <input
                   value={addInput}
@@ -285,33 +351,31 @@ export default function App() {
                   {adding ? '…' : '+'}
                 </button>
               </div>
-              {addError && <p className="text-[#f85149] text-[10px] mt-1 px-1">{addError}</p>}
-              <p className="text-[10px] text-[#484f58] mt-1.5 px-1">
-                Python fetches new tickers on next cycle (~60s)
-              </p>
+              {addError  && <p className="text-[#f85149] text-[10px] mt-1 px-1">{addError}</p>}
+              {pendingMsg && (
+                <p className="text-[#58a6ff] text-[10px] mt-1.5 px-1 leading-snug">{pendingMsg}</p>
+              )}
+              {!localApiOk && (
+                <p className="text-[10px] text-[#484f58] mt-1.5 px-1">
+                  New data appears in ~2 min
+                </p>
+              )}
             </div>
           )}
 
           {/* Ticker list */}
-          <div className="px-2 py-3 space-y-0.5">
-            <p className="text-[10px] text-[#8b949e] uppercase tracking-widest font-semibold px-2 mb-2">
-              Watchlist
-            </p>
+          <div className="px-2 py-3 flex-1 space-y-0.5">
+            <p className="text-[10px] text-[#8b949e] uppercase tracking-widest font-semibold px-2 mb-2">Watchlist</p>
             {tickers.map(ticker => {
-              const s   = data[ticker]
-              const c   = s?.change_pct ?? 0
+              const s      = data[ticker]
+              const c      = s?.change_pct ?? 0
               const active = ticker === selected
               return (
                 <div
                   key={ticker}
-                  className={`group flex items-center rounded-lg transition-colors cursor-pointer ${
-                    active ? 'bg-[#21262d]' : 'hover:bg-[#1c2128]'
-                  }`}
+                  className={`group flex items-center rounded-lg transition-colors cursor-pointer ${active ? 'bg-[#21262d]' : 'hover:bg-[#1c2128]'}`}
                 >
-                  <button
-                    onClick={() => setSelected(ticker)}
-                    className="flex-1 text-left px-3 py-2.5 min-w-0"
-                  >
+                  <button onClick={() => setSelected(ticker)} className="flex-1 text-left px-3 py-2.5 min-w-0">
                     <div className={`font-semibold text-sm ${active ? 'text-[#e6edf3]' : 'text-[#8b949e] group-hover:text-[#e6edf3]'}`}>
                       {ticker}
                     </div>
@@ -319,7 +383,7 @@ export default function App() {
                       {c > 0 ? '+' : ''}{fmt(c)}%
                     </div>
                   </button>
-                  {apiOk && (
+                  {canManage && (
                     <button
                       onClick={() => removeTicker(ticker)}
                       disabled={removing === ticker}
@@ -333,9 +397,53 @@ export default function App() {
               )
             })}
           </div>
+
+          {/* Lock / admin unlock (bottom of sidebar) */}
+          {!localApiOk && (
+            <div className="border-t border-[#21262d] p-3">
+              {!adminUnlocked ? (
+                <>
+                  <button
+                    onClick={() => { setShowLock(p => !p); setTokenError('') }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[#484f58] hover:text-[#8b949e] hover:bg-[#1c2128] transition-colors text-xs"
+                  >
+                    <span>🔐</span>
+                    <span>Manage watchlist</span>
+                  </button>
+                  {showLock && (
+                    <div className="mt-2 space-y-2">
+                      <input
+                        type="password"
+                        value={tokenInput}
+                        onChange={e => { setTokenInput(e.target.value); setTokenError('') }}
+                        onKeyDown={e => e.key === 'Enter' && unlockAdmin()}
+                        placeholder="Admin password"
+                        className="w-full bg-[#21262d] text-[#e6edf3] rounded-lg px-2.5 py-1.5 text-xs border border-[#30363d] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58]"
+                      />
+                      <button
+                        onClick={unlockAdmin}
+                        className="w-full bg-[#21262d] hover:bg-[#30363d] text-[#58a6ff] text-xs font-semibold rounded-lg py-1.5 border border-[#30363d] transition-colors"
+                      >
+                        Unlock
+                      </button>
+                      {tokenError && <p className="text-[#f85149] text-[10px] px-1">{tokenError}</p>}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <button
+                  onClick={() => { setAdminUnlocked(false); setAdminToken(''); sessionStorage.removeItem('adminToken') }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[#58a6ff] hover:bg-[#1c2128] transition-colors text-xs"
+                >
+                  <span>🔓</span>
+                  <span>Lock admin</span>
+                </button>
+              )}
+            </div>
+          )}
         </aside>
 
-        {/* Main */}
+        {/* Main content */}
         <main className="flex-1 overflow-y-auto">
           {stock && (
             <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-6">
@@ -353,12 +461,8 @@ export default function App() {
                       )}
                     </div>
                     <div className="flex items-baseline gap-3 mt-2 flex-wrap">
-                      <span className="text-2xl md:text-3xl font-bold">
-                        {fmtPrice(stock.price, stock.currency)}
-                      </span>
-                      <span className={`text-lg font-semibold ${chgColor}`}>
-                        {chgSign}{fmt(chg)}%
-                      </span>
+                      <span className="text-2xl md:text-3xl font-bold">{fmtPrice(stock.price, stock.currency)}</span>
+                      <span className={`text-lg font-semibold ${chgColor}`}>{chgSign}{fmt(chg)}%</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
@@ -371,9 +475,7 @@ export default function App() {
                 {reasonPills.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-4">
                     {reasonPills.map((r, i) => (
-                      <span key={i} className="text-xs bg-[#21262d] text-[#8b949e] border border-[#30363d] rounded-full px-3 py-1">
-                        {r}
-                      </span>
+                      <span key={i} className="text-xs bg-[#21262d] text-[#8b949e] border border-[#30363d] rounded-full px-3 py-1">{r}</span>
                     ))}
                   </div>
                 )}
@@ -388,32 +490,22 @@ export default function App() {
               <section>
                 <h2 className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-3">Technical Analysis</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  <MetricCard
-                    label="RSI (14)" value={fmt(stock.rsi)}
+                  <MetricCard label="RSI (14)" value={fmt(stock.rsi)}
                     valueClass={stock.rsi > 70 ? 'text-[#f85149]' : stock.rsi < 30 ? 'text-[#3fb950]' : 'text-[#e6edf3]'}
-                    sub={stock.rsi > 70 ? 'Overbought' : stock.rsi < 30 ? 'Oversold' : 'Neutral'}
-                  />
-                  <MetricCard
-                    label="SMA 20" value={fmtPrice(stock.sma_short, stock.currency)}
+                    sub={stock.rsi > 70 ? 'Overbought' : stock.rsi < 30 ? 'Oversold' : 'Neutral'} />
+                  <MetricCard label="SMA 20" value={fmtPrice(stock.sma_short, stock.currency)}
                     valueClass={stock.price > stock.sma_short ? 'text-[#3fb950]' : 'text-[#f85149]'}
-                    sub={stock.price > stock.sma_short ? 'Price above ▲' : 'Price below ▼'}
-                  />
-                  <MetricCard
-                    label="SMA 50" value={fmtPrice(stock.sma_long, stock.currency)}
+                    sub={stock.price > stock.sma_short ? 'Price above ▲' : 'Price below ▼'} />
+                  <MetricCard label="SMA 50" value={fmtPrice(stock.sma_long, stock.currency)}
                     valueClass={stock.price > stock.sma_long ? 'text-[#3fb950]' : 'text-[#f85149]'}
-                    sub={stock.price > stock.sma_long ? 'Price above ▲' : 'Price below ▼'}
-                  />
-                  <MetricCard
-                    label="Volume Ratio" value={`${fmt(stock.vol_ratio)}x`}
+                    sub={stock.price > stock.sma_long ? 'Price above ▲' : 'Price below ▼'} />
+                  <MetricCard label="Volume Ratio" value={`${fmt(stock.vol_ratio)}x`}
                     valueClass={stock.vol_ratio > 1.5 ? 'text-[#58a6ff]' : 'text-[#e6edf3]'}
-                    sub={stock.vol_ratio > 1.5 ? 'High volume' : stock.vol_ratio < 0.7 ? 'Low volume' : 'Normal'}
-                  />
+                    sub={stock.vol_ratio > 1.5 ? 'High volume' : stock.vol_ratio < 0.7 ? 'Low volume' : 'Normal'} />
                   <MetricCard label="52W High" value={fmtPrice(stock.high_52w, stock.currency)} />
                   <MetricCard label="52W Low"  value={fmtPrice(stock.low_52w,  stock.currency)} />
-                  <MetricCard
-                    label="From 52W High" value={`${fmt(stock.pct_from_52w_high)}%`}
-                    valueClass={stock.pct_from_52w_high > -5 ? 'text-[#3fb950]' : stock.pct_from_52w_high > -20 ? 'text-[#e3b341]' : 'text-[#f85149]'}
-                  />
+                  <MetricCard label="From 52W High" value={`${fmt(stock.pct_from_52w_high)}%`}
+                    valueClass={stock.pct_from_52w_high > -5 ? 'text-[#3fb950]' : stock.pct_from_52w_high > -20 ? 'text-[#e3b341]' : 'text-[#f85149]'} />
                 </div>
               </section>
 
@@ -422,17 +514,13 @@ export default function App() {
                 <h2 className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-3">Fundamentals</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   <MetricCard label="P/E Ratio" value={stock.pe_ratio ? `${fmt(stock.pe_ratio)}x` : '—'} />
-                  <MetricCard
-                    label="Profit Margin" value={`${fmt(stock.profit_margin)}%`}
-                    valueClass={stock.profit_margin >= 20 ? 'text-[#3fb950]' : stock.profit_margin >= 10 ? 'text-[#e3b341]' : 'text-[#f85149]'}
-                  />
+                  <MetricCard label="Profit Margin" value={`${fmt(stock.profit_margin)}%`}
+                    valueClass={stock.profit_margin >= 20 ? 'text-[#3fb950]' : stock.profit_margin >= 10 ? 'text-[#e3b341]' : 'text-[#f85149]'} />
                   <MetricCard label="Cash Reserves" value={`$${fmt(stock.cash_reserves)}B`} valueClass="text-[#3fb950]" />
                   <MetricCard label="Total Debt"     value={`$${fmt(stock.total_debt)}B`}     valueClass="text-[#f85149]" />
-                  <MetricCard
-                    label="Rule of 40" value={fmt(stock.rule_of_40)}
+                  <MetricCard label="Rule of 40" value={fmt(stock.rule_of_40)}
                     valueClass={stock.rule_of_40 >= 40 ? 'text-[#3fb950]' : stock.rule_of_40 >= 20 ? 'text-[#e3b341]' : 'text-[#f85149]'}
-                    hint="Rev Growth% + Profit Margin%"
-                  />
+                    hint="Rev Growth% + Profit Margin%" />
                 </div>
               </section>
 
@@ -441,21 +529,15 @@ export default function App() {
                 <h2 className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-3">Valuation & Analyst</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   <MetricCard label="Intrinsic Value" value={fmtPrice(stock.intrinsic_value, stock.currency)} />
-                  <MetricCard
-                    label="DCF Margin" value={`${fmt(stock.dcf_margin)}%`}
+                  <MetricCard label="DCF Margin" value={`${fmt(stock.dcf_margin)}%`}
                     valueClass={stock.dcf_margin > 0 ? 'text-[#3fb950]' : 'text-[#f85149]'}
-                    sub={stock.dcf_note}
-                  />
+                    sub={stock.dcf_note} />
                   <MetricCard label="Analyst Target" value={fmtPrice(stock.analyst_target, stock.currency)} />
-                  <MetricCard
-                    label="Analyst Rating" value={formatConsensus(stock.analyst_consensus)}
-                    valueClass={signalStyle(stock.analyst_consensus).text}
-                  />
+                  <MetricCard label="Analyst Rating" value={formatConsensus(stock.analyst_consensus)}
+                    valueClass={signalStyle(stock.analyst_consensus).text} />
                   <MetricCard label="# Analysts" value={stock.analyst_count} />
-                  <MetricCard
-                    label="Our Rating" value={formatConsensus(stock.our_rating)}
-                    valueClass={signalStyle(stock.our_rating).text}
-                  />
+                  <MetricCard label="Our Rating" value={formatConsensus(stock.our_rating)}
+                    valueClass={signalStyle(stock.our_rating).text} />
                 </div>
               </section>
 
@@ -467,25 +549,12 @@ export default function App() {
                   </h2>
                   <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-4 md:p-6">
                     <div className="flex gap-4 items-stretch">
-
-                      {/* Chart */}
                       <div className="flex-1 min-w-0">
                         <ResponsiveContainer width="100%" height={260}>
                           <BarChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#21262d" vertical={false} />
-                            <XAxis
-                              dataKey="quarter"
-                              tick={{ fill: '#8b949e', fontSize: 11 }}
-                              axisLine={{ stroke: '#30363d' }}
-                              tickLine={false}
-                            />
-                            <YAxis
-                              tick={{ fill: '#8b949e', fontSize: 11 }}
-                              axisLine={false}
-                              tickLine={false}
-                              tickFormatter={v => `$${v}B`}
-                              width={48}
-                            />
+                            <XAxis dataKey="quarter" tick={{ fill: '#8b949e', fontSize: 11 }} axisLine={{ stroke: '#30363d' }} tickLine={false} />
+                            <YAxis tick={{ fill: '#8b949e', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}B`} width={48} />
                             <Tooltip
                               cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                               content={({ active, payload, label }) => {
@@ -507,9 +576,7 @@ export default function App() {
                                               {qoq >= 0 ? '▲' : '▼'} {Math.abs(qoq).toFixed(1)}% QoQ
                                             </span>
                                           )}
-                                          {idx === 0 && (
-                                            <span className="ml-2 text-xs text-[#484f58]">first quarter</span>
-                                          )}
+                                          {idx === 0 && <span className="ml-2 text-xs text-[#484f58]">first quarter</span>}
                                         </div>
                                       )
                                     })}
@@ -521,8 +588,6 @@ export default function App() {
                             <Bar dataKey="Earnings" fill="#3fb950" radius={[4, 4, 0, 0]} maxBarSize={36} />
                           </BarChart>
                         </ResponsiveContainer>
-
-                        {/* Legend row */}
                         <div className="flex gap-4 justify-center mt-2">
                           <span className="flex items-center gap-1.5 text-xs text-[#8b949e]">
                             <span className="w-3 h-3 rounded-sm bg-[#58a6ff] inline-block" /> Revenue
@@ -536,9 +601,7 @@ export default function App() {
                       {/* YoY panel */}
                       {yoyData.length > 0 && (
                         <div className="hidden sm:flex w-36 flex-shrink-0 flex-col justify-center gap-3 border-l border-[#21262d] pl-4">
-                          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e]">
-                            Year over Year
-                          </p>
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e]">Year over Year</p>
                           {yoyData.map(item => (
                             <div key={item.label} className="bg-[#21262d] rounded-lg p-2.5 space-y-1">
                               <p className="text-[10px] text-[#8b949e] font-medium">{item.label}</p>
@@ -556,7 +619,7 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Mobile YoY (below chart on small screens) */}
+                    {/* Mobile YoY */}
                     {yoyData.length > 0 && (
                       <div className="sm:hidden mt-4 pt-4 border-t border-[#21262d]">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8b949e] mb-2">Year over Year</p>

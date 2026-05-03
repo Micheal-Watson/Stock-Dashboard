@@ -2,8 +2,8 @@
 Lightweight API server for the stock dashboard.
 Handles live data serving and watchlist management (add/remove tickers).
 
-Run: python api/server.py
-from the web-dashboard folder (or adjust BASE_DIR below).
+Run: python local-server.py
+from the web-dashboard folder.
 """
 
 import json
@@ -11,7 +11,7 @@ import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
-BASE_DIR    = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BASE_DIR, "Python Script", "config.json")
 DATA_FILE   = os.path.join(BASE_DIR, "Python Script", "stock_data.json")
 
