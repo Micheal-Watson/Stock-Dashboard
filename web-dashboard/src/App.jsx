@@ -140,7 +140,8 @@ export default function App() {
   const [adding,       setAdding]      = useState(false)
   const [removing,     setRemoving]    = useState(null)
   const [addError,     setAddError]    = useState('')
-  const [pendingMsg,   setPendingMsg]  = useState('')
+  // pipeline: { ticker, step: 1|2|3|4, elapsed, intervalId }
+  const [pipeline,     setPipeline]    = useState(null)
 
   // ── Live clock & countdown ────────────────────────────────────────────────
 
@@ -233,14 +234,40 @@ export default function App() {
     }
   }
 
+  function startPipeline(ticker) {
+    // clear any existing pipeline interval
+    setPipeline(prev => { if (prev?.intervalId) clearInterval(prev.intervalId); return null })
+    const start = Date.now()
+    // poll every 15s to check if ticker appears in live data
+    const intervalId = setInterval(async () => {
+      const elapsed = Math.round((Date.now() - start) / 1000)
+      setPipeline(prev => prev ? { ...prev, elapsed } : null)
+      try {
+        const r = await fetch(`/stock_data.json?t=${Date.now()}`)
+        if (!r.ok) return
+        const json = await r.json()
+        if (json[ticker]) {
+          clearInterval(intervalId)
+          applyData(json, true)
+          setPipeline(prev => prev ? { ...prev, step: 4, elapsed } : null)
+          setTimeout(() => setPipeline(null), 5000)
+        }
+      } catch { /* ignore polling errors */ }
+    }, 15_000)
+    setPipeline({ ticker, step: 1, elapsed: 0, intervalId })
+    // advance to step 2 after 10s (Actions queued/running)
+    setTimeout(() => setPipeline(prev => prev?.step === 1 ? { ...prev, step: 2 } : prev), 10_000)
+    // advance to step 3 after 2.5 min (Actions done, Vercel rebuilding)
+    setTimeout(() => setPipeline(prev => prev?.step === 2 ? { ...prev, step: 3 } : prev), 150_000)
+  }
+
   async function addTicker() {
     const ticker = addInput.trim().toUpperCase()
     if (!ticker) return
     setAdding(true)
     setAddError('')
     try {
-      const endpoint = localApiOk ? '/api/data' : '/api/watchlist'
-      const r = await fetch(localApiOk ? '/api/watchlist' : '/api/watchlist', {
+      const r = await fetch('/api/watchlist', {
         method:  'POST',
         headers: authHeaders(),
         body:    JSON.stringify({ ticker }),
@@ -249,16 +276,10 @@ export default function App() {
       const result = await r.json().catch(() => ({}))
       if (!r.ok) { setAddError(result.error || `Error ${r.status}`); return }
       setAddInput('')
-      if (result.message) setPendingMsg(result.message)
       if (localApiOk) {
-        // Local: data updates within seconds
-        setTimeout(async () => {
-          const json = await fetchData(); applyData(json, true)
-          setPendingMsg('')
-        }, 1000)
+        setTimeout(async () => { const json = await fetchData(); applyData(json, true) }, 1000)
       } else {
-        // Vercel: GitHub Actions takes ~2 min, auto-clear message after 3 min
-        setTimeout(() => setPendingMsg(''), 180_000)
+        startPipeline(ticker)
       }
     } catch { setAddError('Network error') }
     finally  { setAdding(false) }
@@ -273,17 +294,10 @@ export default function App() {
         headers: authHeaders(),
       })
       if (r.status === 401) { setAddError('Wrong password'); return }
-      const result = await r.json()
-      if (result.message) setPendingMsg(result.message)
+      await r.json().catch(() => ({}))
+      setSelected(prev => prev === ticker ? (tickers[0] !== ticker ? tickers[0] : tickers[1] ?? null) : prev)
       if (localApiOk) {
-        const json = await fetchData()
-        const tickers = Object.keys(json).filter(k => k !== '_meta')
-        setData(json)
-        setSelected(prev => prev === ticker ? (tickers[0] ?? null) : prev)
-        setPendingMsg('')
-      } else {
-        setSelected(prev => prev === ticker ? (tickers[0] ?? null) : prev)
-        setTimeout(() => setPendingMsg(''), 180_000)
+        const json = await fetchData(); applyData(json, true)
       }
     } catch { setAddError('Network error') }
     finally  { setRemoving(null) }
@@ -370,25 +384,47 @@ export default function App() {
                   onKeyDown={e => e.key === 'Enter' && addTicker()}
                   placeholder="e.g. TSLA"
                   maxLength={10}
-                  className="flex-1 min-w-0 bg-[#21262d] text-[#e6edf3] rounded-lg px-2.5 py-1.5 text-xs border border-[#30363d] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58] transition-colors"
+                  disabled={!!pipeline}
+                  className="flex-1 min-w-0 bg-[#21262d] text-[#e6edf3] rounded-lg px-2.5 py-1.5 text-xs border border-[#30363d] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58] transition-colors disabled:opacity-40"
                 />
                 <button
                   onClick={addTicker}
-                  disabled={adding || !addInput.trim()}
+                  disabled={adding || !addInput.trim() || !!pipeline}
                   className="bg-[#21262d] hover:bg-[#30363d] text-[#58a6ff] rounded-lg px-2.5 py-1.5 text-sm font-bold border border-[#30363d] disabled:opacity-40 transition-colors"
                 >
                   {adding ? '…' : '+'}
                 </button>
               </div>
-              {addError  && <p className="text-[#f85149] text-[10px] mt-1 px-1">{addError}</p>}
-              {pendingMsg && (
-                <p className="text-[#58a6ff] text-[10px] mt-1.5 px-1 leading-snug">{pendingMsg}</p>
-              )}
-              {!localApiOk && (
-                <p className="text-[10px] text-[#484f58] mt-1.5 px-1">
-                  New data appears in ~2 min
-                </p>
-              )}
+              {addError && <p className="text-[#f85149] text-[10px] mt-1 px-1">{addError}</p>}
+
+              {/* Pipeline status tracker */}
+              {pipeline && (() => {
+                const steps = [
+                  { label: 'Watchlist saved to GitHub',      done: pipeline.step >= 1 },
+                  { label: 'GitHub Actions running…',        done: pipeline.step >= 3, active: pipeline.step === 2 },
+                  { label: 'Vercel rebuilding with data…',   done: pipeline.step >= 4, active: pipeline.step === 3 },
+                  { label: `${pipeline.ticker} is live! ✓`,  done: pipeline.step >= 4 },
+                ]
+                const mins = Math.floor(pipeline.elapsed / 60)
+                const secs = pipeline.elapsed % 60
+                return (
+                  <div className="mt-2 bg-[#0d1117] border border-[#21262d] rounded-lg p-2.5 space-y-1.5">
+                    <p className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-widest mb-1">
+                      Pipeline — {mins}:{String(secs).padStart(2,'0')} elapsed
+                    </p>
+                    {steps.map((s, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-sm leading-none w-4 flex-shrink-0">
+                          {s.done ? '✅' : s.active ? '⏳' : '○'}
+                        </span>
+                        <span className={`text-[10px] leading-tight ${s.done ? 'text-[#3fb950]' : s.active ? 'text-[#e3b341]' : 'text-[#484f58]'}`}>
+                          {s.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
             </div>
           )}
 
