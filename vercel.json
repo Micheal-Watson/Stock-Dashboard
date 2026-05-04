@@ -1,0 +1,13 @@
+{
+  "buildCommand": "cd web-dashboard && npm install && npm run build",
+  "outputDirectory": "web-dashboard/dist",
+  "installCommand": "echo skip",
+  "framework": null,
+  "functions": {
+    "api/watchlist.js": {},
+    "api/debug.js": {}
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
