@@ -1,0 +1,9 @@
+{
+  "functions": {
+    "api/watchlist.js": {},
+    "api/debug.js": {}
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
