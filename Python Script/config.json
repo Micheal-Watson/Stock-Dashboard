@@ -13,21 +13,18 @@
     "MCD",
     "TD.TO",
     "ENB.TO",
-    "GOOGL"
+    "GOOGL",
+    "SPGI"
   ],
-
   "opc_ua_port": 4840,
   "refresh_interval_seconds": 60,
-
   "rsi_period": 14,
   "sma_short": 20,
   "sma_long": 50,
-
   "dcf_enabled": true,
-  "dcf_discount_rate": 0.10,
+  "dcf_discount_rate": 0.1,
   "dcf_terminal_growth": 0.03,
   "dcf_projection_years": 5,
-
   "ai_enabled": false,
   "ai_provider": "groq",
   "ai_api_key": "",
