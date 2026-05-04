@@ -116,11 +116,16 @@ function PctLabel({ val }) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 
+const POLL_INTERVAL = 30_000
+
 export default function App() {
   const [data,         setData]        = useState(null)
   const [selected,     setSelected]    = useState(null)
   const [loading,      setLoading]     = useState(true)
   const [error,        setError]       = useState(null)
+  const [lastFetch,    setLastFetch]   = useState(null)   // Date of last successful fetch
+  const [nextIn,       setNextIn]      = useState(POLL_INTERVAL / 1000)  // countdown seconds
+  const [clock,        setClock]       = useState('')     // live HH:MM:SS
 
   // local API state (server.py running)
   const [localApiOk,   setLocalApiOk]  = useState(false)
@@ -137,6 +142,18 @@ export default function App() {
   const [addError,     setAddError]    = useState('')
   const [pendingMsg,   setPendingMsg]  = useState('')
 
+  // ── Live clock & countdown ────────────────────────────────────────────────
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date()
+      setClock(now.toLocaleTimeString('en-CA', { hour12: false }))
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [])
+
   // ── Data loading ──────────────────────────────────────────────────────────
 
   const fetchData = useCallback(async () => {
@@ -144,7 +161,8 @@ export default function App() {
       const r = await fetch('/api/data')
       if (r.ok) { setLocalApiOk(true); return await r.json() }
     } catch { /* not running locally */ }
-    const r = await fetch('/stock_data.json')
+    // cache-bust so browser always gets latest file from Vercel CDN
+    const r = await fetch(`/stock_data.json?t=${Date.now()}`)
     if (!r.ok) throw new Error(`HTTP ${r.status}`)
     return r.json()
   }, [])
@@ -152,6 +170,8 @@ export default function App() {
   const applyData = useCallback((json, keepSelected = false) => {
     const tickers = Object.keys(json).filter(k => k !== '_meta')
     setData(json)
+    setLastFetch(new Date())
+    setNextIn(POLL_INTERVAL / 1000)
     setSelected(prev => {
       if (keepSelected && prev && tickers.includes(prev)) return prev
       return tickers[0] ?? null
@@ -162,11 +182,17 @@ export default function App() {
     fetchData()
       .then(json => { applyData(json); setLoading(false) })
       .catch(e  => { setError(e.message); setLoading(false) })
-    const id = setInterval(() => {
+    const pollId = setInterval(() => {
       fetchData().then(json => applyData(json, true)).catch(() => {})
-    }, 30_000)
-    return () => clearInterval(id)
+    }, POLL_INTERVAL)
+    return () => clearInterval(pollId)
   }, [fetchData, applyData])
+
+  // countdown ticker
+  useEffect(() => {
+    const id = setInterval(() => setNextIn(n => Math.max(0, n - 1)), 1000)
+    return () => clearInterval(id)
+  }, [])
 
   // ── Watchlist API calls ───────────────────────────────────────────────────
 
@@ -320,8 +346,11 @@ export default function App() {
             </span>
           )}
           {stock?.last_updated && (
-            <span className="text-[#8b949e] text-xs">Updated {formatDate(stock.last_updated)}</span>
+            <span className="text-[#8b949e] text-xs">Data: {formatDate(stock.last_updated)}</span>
           )}
+          <span className="text-[#484f58] text-xs font-mono" title="Page refreshes data every 30s">
+            {clock} · refresh in {String(nextIn).padStart(2, '0')}s
+          </span>
         </div>
       </nav>
 
