@@ -220,8 +220,8 @@ export default function App() {
         body:    JSON.stringify({ ticker }),
       })
       if (r.status === 401) { setAddError('Wrong password'); return }
-      if (!r.ok) { setAddError('Failed — try again'); return }
-      const result = await r.json()
+      const result = await r.json().catch(() => ({}))
+      if (!r.ok) { setAddError(result.error || `Error ${r.status}`); return }
       setAddInput('')
       if (result.message) setPendingMsg(result.message)
       if (localApiOk) {
