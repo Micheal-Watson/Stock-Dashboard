@@ -234,7 +234,7 @@ export default function App() {
     }
   }
 
-  function startPipeline(ticker) {
+  function startPipeline(ticker, dispatched) {
     // clear any existing pipeline interval
     setPipeline(prev => { if (prev?.intervalId) clearInterval(prev.intervalId); return null })
     const start = Date.now()
@@ -254,7 +254,8 @@ export default function App() {
         }
       } catch { /* ignore polling errors */ }
     }, 15_000)
-    setPipeline({ ticker, step: 1, elapsed: 0, intervalId })
+    setPipeline({ ticker, step: 1, elapsed: 0, intervalId, dispatched })
+    if (!dispatched) return  // stop here — token issue, no point waiting
     // advance to step 2 after 10s (Actions queued/running)
     setTimeout(() => setPipeline(prev => prev?.step === 1 ? { ...prev, step: 2 } : prev), 10_000)
     // advance to step 3 after 2.5 min (Actions done, Vercel rebuilding)
@@ -279,7 +280,7 @@ export default function App() {
       if (localApiOk) {
         setTimeout(async () => { const json = await fetchData(); applyData(json, true) }, 1000)
       } else {
-        startPipeline(ticker)
+        startPipeline(ticker, result.dispatched !== false)
       }
     } catch { setAddError('Network error') }
     finally  { setAdding(false) }
@@ -400,8 +401,8 @@ export default function App() {
               {/* Pipeline status tracker */}
               {pipeline && (() => {
                 const steps = [
-                  { label: 'Watchlist saved to GitHub',      done: pipeline.step >= 1 },
-                  { label: 'GitHub Actions running…',        done: pipeline.step >= 3, active: pipeline.step === 2 },
+                  { label: 'Watchlist saved to GitHub',      done: pipeline.step >= 1, error: pipeline.dispatched === false },
+                  { label: pipeline.dispatched === false ? '⚠ Workflow not triggered — fix token' : 'GitHub Actions running…', done: pipeline.step >= 3, active: pipeline.step === 2, error: pipeline.dispatched === false },
                   { label: 'Vercel rebuilding with data…',   done: pipeline.step >= 4, active: pipeline.step === 3 },
                   { label: `${pipeline.ticker} is live! ✓`,  done: pipeline.step >= 4 },
                 ]
@@ -417,7 +418,7 @@ export default function App() {
                         <span className="text-sm leading-none w-4 flex-shrink-0">
                           {s.done ? '✅' : s.active ? '⏳' : '○'}
                         </span>
-                        <span className={`text-[10px] leading-tight ${s.done ? 'text-[#3fb950]' : s.active ? 'text-[#e3b341]' : 'text-[#484f58]'}`}>
+                        <span className={`text-[10px] leading-tight ${s.error ? 'text-[#f85149]' : s.done ? 'text-[#3fb950]' : s.active ? 'text-[#e3b341]' : 'text-[#484f58]'}`}>
                           {s.label}
                         </span>
                       </div>

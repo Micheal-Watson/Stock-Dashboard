@@ -100,11 +100,19 @@ module.exports = async function handler(req, res) {
   }
 
   // Trigger GitHub Actions to re-run the stock script
-  await githubFetch('POST', `/repos/${owner}/${repo}/actions/workflows/update-data.yml/dispatches`,
+  const dispatchResult = await githubFetch('POST', `/repos/${owner}/${repo}/actions/workflows/update-data.yml/dispatches`,
     { ref: 'main' }, ghToken)
 
+  const dispatched = dispatchResult.status === 204
+  const dispatchError = dispatched ? null
+    : `Workflow dispatch failed (HTTP ${dispatchResult.status}): ${dispatchResult.body?.message || 'unknown'}. Check GITHUB_TOKEN has workflow scope.`
+
   res.status(200).json({
-    stocks:  cfg.stocks,
-    message: 'Watchlist updated — fresh data in ~2 min',
+    stocks:      cfg.stocks,
+    dispatched,
+    dispatchError,
+    message: dispatched
+      ? 'Watchlist updated — fresh data in ~2 min'
+      : 'Watchlist saved but workflow did not trigger — check token permissions',
   })
 }
