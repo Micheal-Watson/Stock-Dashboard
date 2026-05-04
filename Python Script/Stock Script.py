@@ -583,6 +583,11 @@ async def main():
         # Write all data to JSON file for Ignition to read
         write_json(all_data)
 
+        # GitHub Actions sets CI=true — run once and exit instead of looping
+        if os.environ.get('CI'):
+            log.info("CI environment detected — exiting after one run")
+            break
+
         log.info(f"── Next refresh in {interval}s ──────────────────────")
         await asyncio.sleep(interval)
 
