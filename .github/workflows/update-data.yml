@@ -5,11 +5,16 @@ on:
     - cron: '0 21 * * 1-5'   # 4 pm ET (9 pm UTC), weekdays
   workflow_dispatch:           # also triggered by the watchlist API when you add/remove a ticker
 
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:
