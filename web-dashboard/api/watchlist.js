@@ -72,11 +72,10 @@ module.exports = async function handler(req, res) {
 
   // Apply the change
   if (req.method === 'POST') {
-    let body = ''
-    await new Promise((r) => { req.on('data', (c) => (body += c)); req.on('end', r) })
-    const { ticker } = JSON.parse(body)
-    const t = ticker?.trim().toUpperCase()
-    if (!t) return res.status(400).json({ error: 'ticker required' })
+    // Vercel auto-parses JSON body — req.body is already an object
+    const { ticker } = req.body || {}
+    const t = (ticker || '').trim().toUpperCase()
+    if (!t || t === '__VERIFY__') return res.status(200).json({ stocks: cfg.stocks, verify: true })
     if (!cfg.stocks.includes(t)) cfg.stocks.push(t)
 
   } else if (req.method === 'DELETE') {

@@ -513,45 +513,72 @@ async def main():
         log.info("── Fetching stock data ──────────────────────────────")
         all_data = {}
 
+        # Re-read config each cycle so watchlist changes take effect without restart
+        cfg     = load_config()
+        tickers = cfg["stocks"]
+
         for ticker in tickers:
-            # Fetch ticker object and info ONCE — shared across all functions
-            t_obj = yf.Ticker(ticker)
             try:
-                info = t_obj.info
+                # Fetch ticker object and info ONCE — shared across all functions
+                t_obj = yf.Ticker(ticker)
+                try:
+                    info = t_obj.info
+                except Exception as e:
+                    log.warning(f"{ticker} info fetch error: {e}")
+                    info = {}
+
+                # Bail out early if Yahoo has zero useful data (bad/unknown ticker)
+                if not info or info.get("regularMarketPrice") is None and info.get("currentPrice") is None:
+                    log.warning(f"{ticker}: no price data from Yahoo — skipping, will show blank")
+                    all_data[ticker] = {
+                        "price": 0, "change_pct": 0, "signal_text": "No Data",
+                        "signal_int": 0, "our_rating": "No Data",
+                        "error": f"No data found for {ticker} — check the ticker symbol",
+                        "last_updated": datetime.now().isoformat(timespec="seconds"),
+                        "quarterly_data": json.dumps({"quarters": [], "revenue": [], "earnings": []}),
+                    }
+                    continue
+
+                # 1. Technical signal (uses info for 52W data)
+                data = compute_signal(ticker, cfg, t_obj, info)
+
+                # 2. DCF + analyst consensus (reuses info and t_obj)
+                dcf = compute_dcf(ticker, data["price"], cfg, info, t_obj)
+                data.update(dcf)
+
+                # 3. Fundamental metrics (PE, margin, cash, debt, Rule of 40)
+                fundamentals = get_fundamentals(ticker, info, t_obj)
+                data.update(fundamentals)
+
+                # 4. Quarterly revenue and earnings (stored as JSON string for chart)
+                quarterly = get_quarterly_data(ticker, t_obj)
+                data["quarterly_data"] = json.dumps(quarterly)
+
+                # 5. AI overview (cached, refreshes every hour)
+                data["ai_overview"] = await get_ai_overview(ticker, data, cfg)
+
+                all_data[ticker] = data
+
+                currency_sym = "C$" if data.get("currency") == "CAD" else "$"
+                log.info(
+                    f"{ticker:<7} {currency_sym}{data['price']:.2f} ({data['change_pct']:+.2f}%) "
+                    f"| RSI {data['rsi']:.1f} | {data['signal_text']:<12}"
+                    f"| IV {currency_sym}{data.get('intrinsic_value', 0):.2f} "
+                    f"({data.get('dcf_margin', 0):+.1f}%) "
+                    f"| PE {data.get('pe_ratio', 0):.1f} "
+                    f"| Margin {data.get('profit_margin', 0):.1f}% "
+                    f"| R40 {data.get('rule_of_40', 0):.1f}"
+                )
+
             except Exception as e:
-                log.warning(f"{ticker} info fetch error: {e}")
-                info = {}
-
-            # 1. Technical signal (uses info for 52W data)
-            data = compute_signal(ticker, cfg, t_obj, info)
-
-            # 2. DCF + analyst consensus (reuses info and t_obj)
-            dcf = compute_dcf(ticker, data["price"], cfg, info, t_obj)
-            data.update(dcf)
-
-            # 3. Fundamental metrics (PE, margin, cash, debt, Rule of 40)
-            fundamentals = get_fundamentals(ticker, info, t_obj)
-            data.update(fundamentals)
-
-            # 4. Quarterly revenue and earnings (stored as JSON string for chart)
-            quarterly = get_quarterly_data(ticker, t_obj)
-            data["quarterly_data"] = json.dumps(quarterly)
-
-            # 5. AI overview (cached, refreshes every hour)
-            data["ai_overview"] = await get_ai_overview(ticker, data, cfg)
-
-            all_data[ticker] = data
-
-            currency_sym = "C$" if data.get("currency") == "CAD" else "$"
-            log.info(
-                f"{ticker:<7} {currency_sym}{data['price']:.2f} ({data['change_pct']:+.2f}%) "
-                f"| RSI {data['rsi']:.1f} | {data['signal_text']:<12}"
-                f"| IV {currency_sym}{data.get('intrinsic_value', 0):.2f} "
-                f"({data.get('dcf_margin', 0):+.1f}%) "
-                f"| PE {data.get('pe_ratio', 0):.1f} "
-                f"| Margin {data.get('profit_margin', 0):.1f}% "
-                f"| R40 {data.get('rule_of_40', 0):.1f}"
-            )
+                log.error(f"{ticker}: unexpected error — {e}")
+                all_data[ticker] = {
+                    "price": 0, "change_pct": 0, "signal_text": "Error",
+                    "signal_int": 0, "our_rating": "Error",
+                    "error": str(e),
+                    "last_updated": datetime.now().isoformat(timespec="seconds"),
+                    "quarterly_data": json.dumps({"quarters": [], "revenue": [], "earnings": []}),
+                }
 
         # Write all data to JSON file for Ignition to read
         write_json(all_data)
