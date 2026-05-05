@@ -162,8 +162,8 @@ export default function App() {
       const r = await fetch('/api/data')
       if (r.ok) { setLocalApiOk(true); return await r.json() }
     } catch { /* not running locally */ }
-    // cache-bust so browser always gets latest file from Vercel CDN
-    const r = await fetch(`/stock_data.json?t=${Date.now()}`)
+    // Serverless function reads directly from GitHub — no Vercel rebuild needed
+    const r = await fetch(`/api/stock-data?t=${Date.now()}`)
     if (!r.ok) throw new Error(`HTTP ${r.status}`)
     return r.json()
   }, [])
@@ -243,7 +243,7 @@ export default function App() {
       const elapsed = Math.round((Date.now() - start) / 1000)
       setPipeline(prev => prev ? { ...prev, elapsed } : null)
       try {
-        const r = await fetch(`/stock_data.json?t=${Date.now()}`)
+        const r = await fetch(`/api/stock-data?t=${Date.now()}`)
         if (!r.ok) return
         const json = await r.json()
         if (json[ticker]) {
