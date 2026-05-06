@@ -140,8 +140,9 @@ export default function App() {
   const [adding,       setAdding]      = useState(false)
   const [removing,     setRemoving]    = useState(null)
   const [addError,     setAddError]    = useState('')
-  // pipeline: { ticker, step: 1|2|3|4, elapsed, intervalId }
+  // pipeline: { ticker|null, step: 1|2|3|4, elapsed, intervalId, baseLastWrite }
   const [pipeline,     setPipeline]    = useState(null)
+  const [refreshing,   setRefreshing]  = useState(false)
 
   // ── Live clock & countdown ────────────────────────────────────────────────
 
@@ -234,11 +235,9 @@ export default function App() {
     }
   }
 
-  function startPipeline(ticker, dispatched) {
-    // clear any existing pipeline interval
+  function startPipeline(ticker, dispatched, baseLastWrite = null) {
     setPipeline(prev => { if (prev?.intervalId) clearInterval(prev.intervalId); return null })
     const start = Date.now()
-    // poll every 15s to check if ticker appears in live data
     const intervalId = setInterval(async () => {
       const elapsed = Math.round((Date.now() - start) / 1000)
       setPipeline(prev => prev ? { ...prev, elapsed } : null)
@@ -246,20 +245,40 @@ export default function App() {
         const r = await fetch(`/api/stock-data?t=${Date.now()}`)
         if (!r.ok) return
         const json = await r.json()
-        if (json[ticker]) {
+        // For ticker adds: wait for ticker to appear
+        // For refreshes: wait for last_write to change
+        const done = ticker
+          ? !!json[ticker]
+          : (json._meta?.last_write && json._meta.last_write !== baseLastWrite)
+        if (done) {
           clearInterval(intervalId)
           applyData(json, true)
           setPipeline(prev => prev ? { ...prev, step: 4, elapsed } : null)
           setTimeout(() => setPipeline(null), 5000)
         }
-      } catch { /* ignore polling errors */ }
+      } catch { /* ignore */ }
     }, 15_000)
     setPipeline({ ticker, step: 1, elapsed: 0, intervalId, dispatched })
-    if (!dispatched) return  // stop here — token issue, no point waiting
-    // advance to step 2 after 10s (Actions queued/running)
+    if (!dispatched) return
     setTimeout(() => setPipeline(prev => prev?.step === 1 ? { ...prev, step: 2 } : prev), 10_000)
-    // advance to step 3 after 2.5 min (Actions done, Vercel rebuilding)
     setTimeout(() => setPipeline(prev => prev?.step === 2 ? { ...prev, step: 3 } : prev), 150_000)
+  }
+
+  async function triggerRefresh() {
+    setRefreshing(true)
+    setAddError('')
+    try {
+      const r = await fetch('/api/refresh', {
+        method: 'POST',
+        headers: authHeaders(),
+      })
+      const result = await r.json().catch(() => ({}))
+      if (r.status === 401) { setAddError('Wrong password'); return }
+      if (!r.ok) { setAddError(result.error || `Error ${r.status}`); return }
+      const baseLastWrite = data?._meta?.last_write ?? null
+      startPipeline(null, result.dispatched !== false, baseLastWrite)
+    } catch { setAddError('Network error') }
+    finally { setRefreshing(false) }
   }
 
   async function addTicker() {
@@ -374,6 +393,21 @@ export default function App() {
         {/* Sidebar */}
         <aside className="hidden md:flex w-52 bg-[#161b22] border-r border-[#21262d] flex-col flex-shrink-0 overflow-y-auto">
 
+          {/* Refresh button */}
+          {canManage && (
+            <div className="px-3 pt-3 pb-2 border-b border-[#21262d]">
+              <button
+                onClick={triggerRefresh}
+                disabled={refreshing || !!pipeline}
+                className="w-full flex items-center justify-center gap-2 bg-[#21262d] hover:bg-[#30363d] text-[#58a6ff] text-xs font-semibold rounded-lg py-2 border border-[#30363d] disabled:opacity-40 transition-colors"
+              >
+                <span className={refreshing ? 'animate-spin' : ''}>⟳</span>
+                {refreshing ? 'Triggering…' : 'Refresh Data Now'}
+              </button>
+              {addError && <p className="text-[#f85149] text-[10px] mt-1 px-1">{addError}</p>}
+            </div>
+          )}
+
           {/* Add ticker panel */}
           {canManage && (
             <div className="px-3 pt-4 pb-3 border-b border-[#21262d]">
@@ -396,15 +430,14 @@ export default function App() {
                   {adding ? '…' : '+'}
                 </button>
               </div>
-              {addError && <p className="text-[#f85149] text-[10px] mt-1 px-1">{addError}</p>}
-
               {/* Pipeline status tracker */}
               {pipeline && (() => {
+                const isRefresh = !pipeline.ticker
                 const steps = [
-                  { label: 'Watchlist saved to GitHub',      done: pipeline.step >= 1, error: pipeline.dispatched === false },
-                  { label: pipeline.dispatched === false ? '⚠ Workflow not triggered — fix token' : 'GitHub Actions running…', done: pipeline.step >= 3, active: pipeline.step === 2, error: pipeline.dispatched === false },
-                  { label: 'Vercel rebuilding with data…',   done: pipeline.step >= 4, active: pipeline.step === 3 },
-                  { label: `${pipeline.ticker} is live! ✓`,  done: pipeline.step >= 4 },
+                  { label: isRefresh ? 'Refresh triggered'          : 'Watchlist saved to GitHub',   done: pipeline.step >= 1, error: pipeline.dispatched === false },
+                  { label: pipeline.dispatched === false ? '⚠ Workflow not triggered — fix token' : 'GitHub Actions running Python…', done: pipeline.step >= 3, active: pipeline.step === 2, error: pipeline.dispatched === false },
+                  { label: 'Waiting for fresh data…',                                                done: pipeline.step >= 4, active: pipeline.step === 3 },
+                  { label: isRefresh ? 'Data updated! ✓'            : `${pipeline.ticker} is live! ✓`, done: pipeline.step >= 4 },
                 ]
                 const mins = Math.floor(pipeline.elapsed / 60)
                 const secs = pipeline.elapsed % 60
