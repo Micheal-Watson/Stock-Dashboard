@@ -14,7 +14,8 @@
     "TD.TO",
     "ENB.TO",
     "GOOGL",
-    "SPGI"
+    "SPGI",
+    "CMPS"
   ],
   "opc_ua_port": 4840,
   "refresh_interval_seconds": 60,
